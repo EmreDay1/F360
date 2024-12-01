@@ -13,7 +13,7 @@ from transformers import (
 )
 
 
-os.environ["WANDB_DISABLED"] = "true"
+# os.environ["WANDB_DISABLED"] = "true" Only for Collab
 
 
 def format_to_jsonable(input_string):
