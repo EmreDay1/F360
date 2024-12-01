@@ -3,59 +3,35 @@ import re
 
 
 def format_to_jsonable(input_string):
-   
     try:
         structured_data = {}
         parameters = {}
 
-        # Extract each component using regular expressions
-        shape_match = re.search(r'shape:\s*([^,]+)', input_string)
+        shape_match = re.search(r'"shape":\s*"([^"]+)"', input_string)
         if shape_match:
             structured_data['shape'] = shape_match.group(1).strip()
 
-        parameters_match = re.search(r'parameters:\s*([^,]+(?:,\s*\w+:\s*[\w\.]+)*)', input_string)
-        if parameters_match:
-            param_string = parameters_match.group(1).strip()
-            param_pairs = param_string.split(", ")
-            for param in param_pairs:
-                param_key, param_value = param.split(":")
-                param_key = param_key.strip()
-                param_value = param_value.strip()
 
-            
+        param_matches = re.findall(r'"(\w+)":\s*([\d\.]+)', input_string)
+        for param_key, param_value in param_matches:
+            if param_key not in ("shape", "plane", "coordinates"): 
                 try:
                     param_value = int(param_value)
                 except ValueError:
                     pass
-
                 parameters[param_key] = param_value
 
- 
         structured_data["parameters"] = parameters
 
-        plane_match = re.search(r'plane:\s*([^,]+)', input_string)
+
+        plane_match = re.search(r'"plane":\s*"([^"]+)"', input_string)
         if plane_match:
-            plane_value = plane_match.group(1).strip()
-            structured_data['plane'] = plane_value
+            structured_data['plane'] = plane_match.group(1).strip()
 
-        
-            if "plane" in parameters:
-                del parameters["plane"]
 
-        coordinates_match = re.search(r'coordinates:\s*(\[[^\]]+\])', input_string)
+        coordinates_match = re.search(r'"coordinates":\s*(\[[^\]]+\])', input_string)
         if coordinates_match:
-            coordinates_str = coordinates_match.group(1).strip()
-            coordinates = []
-            if coordinates_str.startswith("[") and coordinates_str.endswith("]"):
-                coordinates_str = coordinates_str[1:-1]  # Remove brackets
-                coord_parts = coordinates_str.split(",")
-                for coord in coord_parts:
-                    coord = coord.strip()
-                    try:
-                        coordinates.append(int(coord))
-                    except ValueError:
-                        print(f"Warning: Could not convert coordinate '{coord}' to an integer")
-
+            coordinates = json.loads(coordinates_match.group(1).strip())
             structured_data["coordinates"] = coordinates
 
         return structured_data
@@ -64,9 +40,9 @@ def format_to_jsonable(input_string):
         print(f"Error in formatting: {e}")
         return None
 
+
 def test_format_to_jsonable():
-
-
+    print("Running test cases...\n")
     for input_string in inputs:
         print(f"Input: {input_string}")
         formatted_output = format_to_jsonable(input_string)
